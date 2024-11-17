@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "author": "Rukshan Kumara",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 67.2, "left": 43.24, "attrs": {} },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -51.6,
+      "left": 368.6,
+      "attrs": { "color": "red" }
+    },
+    { "type": "wokwi-relay-module", "id": "relay1", "top": -9.4, "left": 172.8, "attrs": {} },
+    { "type": "wokwi-vcc", "id": "vcc1", "top": -66.44, "left": 326.4, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd1", "top": 86.4, "left": 373.8, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -30.1, "left": -163.4, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:23", "relay1:IN", "green", [ "h0" ] ],
+    [ "esp:GND.2", "relay1:GND", "black", [ "v0" ] ],
+    [ "esp:5V", "relay1:VCC", "red", [ "h-28.65", "v-259.2" ] ],
+    [ "gnd1:GND", "led1:C", "black", [ "v0" ] ],
+    [ "esp:5V", "pot1:VCC", "red", [ "h0" ] ],
+    [ "esp:34", "pot1:SIG", "green", [ "h0" ] ],
+    [ "esp:GND.1", "pot1:GND", "black", [ "h0" ] ],
+    [ "relay1:NC", "led1:A", "green", [ "v-1.2", "h106.8" ] ],
+    [ "vcc1:VCC", "relay1:COM", "red", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
