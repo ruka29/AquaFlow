@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/screens/login.dart';
+import 'package:mobile/theme.dart';
 
 class SignUpPage extends StatelessWidget {
   const SignUpPage({super.key});
@@ -7,124 +8,192 @@ class SignUpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // Add padding for better layout
+          padding: const EdgeInsets.all(24.0), // Spacious padding
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Logo at the top
               Image.asset(
                 'images/AquaFlow_logo.png',
-                width: 250,
+                width: 350,
                 fit: BoxFit.fill,
+                
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
               // Title text
-              Text(
-                'Create Your AquaFlow Account',
+              const Text(
+                'Create Your Account',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 22,
-                  color: Colors.blue[900],
+                  fontFamily: 'Boring-Sans-A-Bold',
+                  fontSize: 22.0,
+                  color: Color(0xFF308EFF),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 26),
+
+              // Subtitle text
+              Text(
+                'Join AquaFlow today and take control of your water management!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 16.0,
+                  color: Colors.grey[750],
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
 
-              // Email TextField
-              TextField(
+              // Email TextFormField
+              TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                  labelStyle: input,
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black45), // Underline color
                   ),
-                  prefixIcon: const Icon(Icons.email),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black45), // Focused underline color
+                  ),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
 
-              // Password TextField
-              TextField(
+              // Password TextFormField
+              TextFormField(
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                  labelStyle: input,
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black45), // Underline color
                   ),
-                  prefixIcon: const Icon(Icons.lock),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black45), // Focused underline color
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-
-              // Google signup button
-              OutlinedButton.icon(
-                onPressed: () {
-                  // Add functionality for Google signup
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  if (value.length < 6) {
+                    return 'Password must be at least 6 characters';
+                  }
+                  return null;
                 },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  side: BorderSide(color: Colors.blue[800]!, width: 2),
-                ),
-                icon: Image.asset(
-                  'images/google_logo.png', // Path to Google logo image
-                  width: 24,
-                  height: 24,
-                ),
-                label: Text(
-                  'Sign Up with Google',
-                  style: TextStyle(fontSize: 16, color: Colors.blue[800]),
-                ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 42),
 
-              // Sign Up button
               ElevatedButton(
                 onPressed: () {
                   // Add navigation or functionality for signing up
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[800],
-                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  backgroundColor: primaryColor, // Dark blue color
+                  padding: const EdgeInsets.symmetric(horizontal: 70, vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 child: const Text(
-                  'Sign Up',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  'SIGN UP',
+                  style: TextStyle(fontSize: 16, color: Colors.white, fontFamily: "Montserrat"),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 36),
 
-              // Login link below the button
+              // Divider (OR Section)
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey[300],
+                      thickness: 1,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      'OR SIGN UP WITH',
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey[300],
+                      thickness: 1,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 26),
+
+              // Google Sign Up button
+              OutlinedButton.icon(
+                onPressed: () {
+                  // Add functionality for Google signup
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  side: BorderSide.none, // Removed border color
+                  backgroundColor: Colors.grey[200], // Light gray background
+                ),
+                icon: Image.asset(
+                  'images/google_logo.png', // Path to Google logo image
+                  width: 40,
+                  height: 40,
+                ),
+                label: const SizedBox.shrink(), // Added label to satisfy syntax
+              ),
+              const SizedBox(height: 24),
+
+              // Login link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Already have an account? ',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: subText,
                   ),
                   GestureDetector(
                     onTap: () {
-                     Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const  LoginPage()),
-                  );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                      );
                     },
-                    child: Text(
+                    child: const Text(
                       'Login',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue[800],
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15.0,
+                        fontFamily: 'Montserrat',
+                        fontWeight: FontWeight.w500,
+                        color: primaryColor,
                       ),
                     ),
+
                   ),
                 ],
               ),

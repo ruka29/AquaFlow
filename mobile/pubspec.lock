@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  custom_navigation_bar:
+    dependency: "direct main"
+    description:
+      name: custom_navigation_bar
+      sha256: "2e00e138a1eba71c288aadbcd728f1f8caebf659b95b793aae08a9c0d70ca941"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.2"
   fake_async:
     dependency: transitive
     description:
@@ -75,6 +83,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  font_awesome_flutter:
+    dependency: "direct main"
+    description:
+      name: font_awesome_flutter
+      sha256: d3a89184101baec7f4600d58840a764d2ef760fe1c5a20ef9e6b0e9b24a07a3a
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.8.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -107,6 +123,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  liquid_progress_indicator_v2:
+    dependency: "direct main"
+    description:
+      name: liquid_progress_indicator_v2
+      sha256: "6bb2c675bab4936864a63ccd503be417e407974e11c62711917a4006bb9288b8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.0"
   matcher:
     dependency: transitive
     description:
@@ -176,6 +200,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  switcher_button:
+    dependency: "direct main"
+    description:
+      name: switcher_button
+      sha256: "532fa81813faf0fd21f233b75e0ca955512b86b6f784fd33804a5ababa4ac71b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.4"
   term_glyph:
     dependency: transitive
     description:
@@ -210,3 +242,4 @@ packages:
     version: "13.0.0"
 sdks:
   dart: ">=3.3.1 <4.0.0"
+  flutter: ">=1.17.0"
