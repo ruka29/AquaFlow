@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/home.dart';
+import 'package:mobile/screens/onboarding.dart';
 
 
 void main() {

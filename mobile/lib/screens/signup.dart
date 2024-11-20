@@ -25,15 +25,10 @@ class SignUpPage extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Title text
-              const Text(
+               Text(
                 'Create Your Account',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Boring-Sans-A-Bold',
-                  fontSize: 22.0,
-                  color: Color(0xFF308EFF),
-                  fontWeight: FontWeight.w700,
-                ),
+                style: blueHeading,
               ),
               const SizedBox(height: 26),
 
@@ -41,12 +36,7 @@ class SignUpPage extends StatelessWidget {
               Text(
                 'Join AquaFlow today and take control of your water management!',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 16.0,
-                  color: Colors.grey[750],
-                  fontWeight: FontWeight.w600,
-                ),
+                 style: heading
               ),
               const SizedBox(height: 32),
 
@@ -110,9 +100,9 @@ class SignUpPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
+                child:  Text(
                   'SIGN UP',
-                  style: TextStyle(fontSize: 16, color: Colors.white, fontFamily: "Montserrat"),
+                  style: buttonTxt,
                 ),
               ),
               const SizedBox(height: 36),

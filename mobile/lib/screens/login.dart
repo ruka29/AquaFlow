@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/screens/navigation.dart';
+import 'package:mobile/screens/home.dart';
 import 'package:mobile/screens/signup.dart';
 import 'package:mobile/theme.dart'; // Assuming the theme file contains 'primaryColor', 'input', etc.
 
@@ -25,15 +25,10 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Title text
-              const Text(
+               Text(
                 'Welcome Back!',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Boring-Sans-A-Bold',
-                  fontSize: 22.0,
-                  color: Color(0xFF308EFF),
-                  fontWeight: FontWeight.w700,
-                ),
+                style: blueHeading,
               ),
                const SizedBox(height: 20),
                  Padding(
@@ -85,7 +80,7 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const NavBarPage()),
+                    MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -95,9 +90,9 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
+                child:  Text(
                   'Log In',
-                  style: TextStyle(fontSize: 16, color: Colors.white, fontFamily: "Montserrat"),
+                  style:buttonTxt,
                 ),
               ),
               const SizedBox(height: 36),
