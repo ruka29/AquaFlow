@@ -11,6 +11,8 @@ const deviceSchema = new mongoose.Schema({
   tankHeight: { type: Number, default: 0 }, // Tank height in meters (default to 0)
   valveOpenTime: { type: Date, default: null }, // Last time the valve was opened
   valveCloseTime: { type: Date, default: null }, // Last time the valve was closed
+  valveOpenLevel: { type: Number, default: 0 }, // Water level when the valve was opened
+  valveCloseLevel: { type: Number, default: 0 }, // Water level when the valve was closed
   lastMonthUsage: { type: Number, default: 0 }, // Water usage for the last month
   thisMonthUsage: { type: Number, default: 0 }, // Water usage for the current month
   addedAt: { type: Date, default: Date.now }, // Timestamp for when the device was registered
