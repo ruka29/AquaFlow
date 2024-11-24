@@ -29,7 +29,7 @@ export const register = async (req, res) => {
   } catch (error) {
     // Handle duplicate email or server errors
     if (error.code === 11000) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(400).json({ message: "Email already exists" });
     }
     res.status(500).json({ error: "Failed to register user" });
   }
@@ -42,13 +42,13 @@ export const login = async (req, res) => {
     let user = await User.findOne({ email }).exec();
 
     if (!user) {
-      return res.status(400).json({ msg: "Invalid email or password" });
+      return res.status(400).json({ message: "Email does not exists!" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
     const payload = {
@@ -65,12 +65,12 @@ export const login = async (req, res) => {
       },
       (err, token) => {
         if (err) throw err;
-        res.status(200).json({ token, msg: "User logged in successfully." });
+        res.status(200).json({ token, message: "User logged in successfully." });
       }
     );
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error");
+    res.status(500).json({ message: "Server Error"});
   }
 };
 

@@ -1,10 +1,10 @@
 import express from "express";
 import http from "http";
+import cors from "cors";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
-import deviceRoutes from "./routes/deviceRoutes.js";
-// import metricsRoutes from "./routes/metricsRoutes.js";
+import deviceRoutes from "./routes/deviceRoutes.js"
 
 import connectDB from "./config/db.js";
 import { initializeSocket } from "./services/socketService.js";
@@ -15,6 +15,7 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
+app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
@@ -23,7 +24,6 @@ connectDB();
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/device", deviceRoutes);
-// app.use("/api/metrics", metricsRoutes);
 
 // WebSocket for real-time updates
 initializeSocket(server);
