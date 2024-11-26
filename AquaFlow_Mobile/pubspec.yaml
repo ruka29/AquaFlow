@@ -39,6 +39,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   draggable_home: ^1.0.5
   fl_chart: ^0.69.2
+  intl: ^0.20.0
 
 dev_dependencies:
   flutter_test:

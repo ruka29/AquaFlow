@@ -294,7 +294,7 @@ class _MainPageState extends State<MainPage> {
                                               ),
                                               const SizedBox(height: 7.0),
                                               Text(
-                                                "Water Level: ${device['waterLevel'] ?? 'N/A'}",
+                                                "Water Level: ${device['waterLevel'] ?? 'N/A'}%",
                                                 style: const TextStyle(
                                                   fontFamily: "Nunito",
                                                   fontSize: 15.0,

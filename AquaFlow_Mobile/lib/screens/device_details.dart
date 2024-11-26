@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
+import 'package:intl/intl.dart';
 import 'package:aquaflow_mobile/screens/device_settings.dart';
 import 'package:aquaflow_mobile/theme/theme.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -57,18 +57,69 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
     }
   }
 
+  List<String> getLast7Days() {
+    final now = DateTime.now();
+    final dateFormatter = DateFormat('MMM d');
+    return List.generate(7, (index) {
+      final date = now.subtract(Duration(days: 6 - index));
+      return dateFormatter.format(date);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double tankFullPercentage = deviceData != null && deviceData!['waterLevel'] != null
         ? deviceData!['waterLevel'] / 100
         : 0.0;
 
+    double calculateEstimateUsage() {
+      DateTime today = DateTime.now();
+
+      if (deviceData == null) {
+        return 0.0;
+      }
+
+      int totalDaysInMonth = DateTime(today.year, today.month + 1, 0).day;
+
+      int remainingDays = totalDaysInMonth - today.day;
+
+      double day1 = deviceData?['day1'] ?? 0.0;
+      double day2 = deviceData?['day2'] ?? 0.0;
+      double day3 = deviceData?['day3'] ?? 0.0;
+      double day4 = deviceData?['day4'] ?? 0.0;
+      double day5 = deviceData?['day5'] ?? 0.0;
+      double day6 = deviceData?['day6'] ?? 0.0;
+      double day7 = deviceData?['day7'] ?? 0.0;
+
+      double averageUsage = (day1 + day2 + day3 + day4 + day5 + day6 + day7) / 7;
+
+      double remainingMonthUsage = averageUsage * remainingDays;
+
+      double thisMonthUsage = deviceData?['thisMonthUsage'] ?? 0.0;
+
+      double estimateMonthlyUsage = thisMonthUsage + remainingMonthUsage;
+      return double.parse(estimateMonthlyUsage.toStringAsFixed(2));
+    }
+
     void updateTankLevel(double newPercentage) {
       setState(() {
-        // Ensure percentage is between 0 and 1
         tankFullPercentage = newPercentage.clamp(0.0, 1.0);
       });
     }
+
+    List<double> dailyUsages = [
+      deviceData?['day1']?.toDouble() ?? 0,
+      deviceData?['day2']?.toDouble() ?? 0,
+      deviceData?['day3']?.toDouble() ?? 0,
+      deviceData?['day4']?.toDouble() ?? 0,
+      deviceData?['day5']?.toDouble() ?? 0,
+      deviceData?['day6']?.toDouble() ?? 0,
+      deviceData?['day7']?.toDouble() ?? 0,
+    ];
+
+    final last7Days = getLast7Days();
+
+    final estimateUsage = calculateEstimateUsage();
 
     if (deviceData == null) {
       return Scaffold(
@@ -120,6 +171,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              const SizedBox(height: 10.0,),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -321,7 +374,199 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                 ),
               ),
 
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, top: 16.0, right: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 10),
 
+                    AspectRatio(
+                      aspectRatio: 1.5,
+                      child: BarChart(
+                        BarChartData(
+                          barGroups: List.generate(
+                            dailyUsages.length,
+                                (index) => BarChartGroupData(
+                              x: index,
+                              barRods: [
+                                BarChartRodData(
+                                  toY: dailyUsages[index], // Usage value
+                                  color: primaryColor, // Bar color
+                                  width: 18, // Bar width
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          titlesData: FlTitlesData(
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  final index = value.toInt();
+                                  if (index < 0 || index >= last7Days.length) {
+                                    return const Text('');
+                                  }
+
+                                  final label = index == 6 ? "Today" : last7Days[index];
+                                  return Text(
+                                    label,
+                                    style: const TextStyle(
+                                      fontFamily: "Nunito-Bold",
+                                      fontSize: 12
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                                getTitlesWidget: (value, meta) {
+                                  return Text(value.toInt().toString());
+                                },
+                              ),
+                            ),
+
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          gridData: const FlGridData(show: false),
+                          alignment: BarChartAlignment.spaceBetween,
+                          groupsSpace: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20.0,),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Monthly Usage",
+                    style: TextStyle(
+                      fontFamily: "Nunito",
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.0
+                    ),
+                  ),
+
+                  Row(
+                    children: [
+                      Text(
+                        estimateUsage > deviceData?['lastMonthUsage'] ? "Increased" : "Decreased",
+                        style: TextStyle(
+                          fontFamily: "Nunito-Bold",
+                          fontSize: 12.0,
+                          color: estimateUsage > deviceData?['lastMonthUsage'] ? Colors.red : Colors.green,
+                        ),
+                      ),
+
+                      const SizedBox(width: 5.0,),
+
+                      estimateUsage > deviceData?['lastMonthUsage'] ? const Icon(Icons.arrow_upward_rounded, color: Colors.red,) : const Icon(Icons.arrow_downward_rounded, color: Colors.green,)
+                    ],
+                  )
+                ],
+              ),
+
+              const SizedBox(height: 15.0,),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "This Month Usage",
+                      style: TextStyle(
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17.0
+                      ),
+                    ),
+
+                    Text(
+                      "${deviceData?['thisMonthUsage']} L",
+                      style: const TextStyle(
+                        fontFamily: "Nunito",
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17.0,
+                        color: Colors.grey
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10.0,),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Estimated Usage",
+                      style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontSize: 15.0
+                      ),
+                    ),
+
+                    Text(
+                      "$estimateUsage L",
+                      style: const TextStyle(
+                          fontFamily: "Nunito",
+                          fontSize: 15.0,
+                          color: Colors.grey
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 15.0,),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Last Month Usage",
+                      style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17.0
+                      ),
+                    ),
+
+                    Text(
+                      "${deviceData?['lastMonthUsage']} L",
+                      style: const TextStyle(
+                          fontFamily: "Nunito",
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17.0,
+                          color: Colors.grey
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
