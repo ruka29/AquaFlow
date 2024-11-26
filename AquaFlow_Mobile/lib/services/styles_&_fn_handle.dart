@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-// global variables
-String globalUserId = "";
-int globalCurrentPage = 0;
-String globalSelectedCategory = "Bestsellers";
-bool globalIsDark = false;
-int globalCartItemCount = 0;
-
 class SlidePageRoute extends PageRouteBuilder {
   final Widget page;
 
@@ -18,6 +11,7 @@ class SlidePageRoute extends PageRouteBuilder {
       const Offset endOffset = Offset(0.0, 0.0);
       return SlideTransition(
         position: Tween<Offset>(begin: beginOffset, end: endOffset)
+            .chain(CurveTween(curve: Curves.easeInOut))
             .animate(animation),
         child: child,
       );

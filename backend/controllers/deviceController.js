@@ -53,6 +53,29 @@ export const registerDevice = async (req, res) => {
   }
 };
 
+export const getDeviceData = async (req, res) => {
+  const {macAddress} = req.body;
+
+  try{
+    const user = await User.findOne({ "devices.macAddress": macAddress });
+
+    if (!user) {
+      return res.status(404).json({ error: "Device not associated with any user" });
+    }
+
+    const device = user.devices.find((device) => device.macAddress === macAddress);
+
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    res.status(200).json(device);
+  } catch (error) {
+    console.error("Error getting device data:", error);
+    res.status(500).json({ message: "Failed to get device data" });
+  }
+}
+
 
 //change tank data(capacity and height)
 export const updateTankData = async (req, res) => {
@@ -200,7 +223,6 @@ export const controlValve = async (req, res) => {
       return res.status(404).json({ error: "Device not found" });
     }
 
-    // Get current time and water level (stubbed, replace with actual implementation)
     const currentTime = new Date();
     const currentWaterLevel = await getCurrentWaterLevel(macAddress);
 
@@ -217,7 +239,7 @@ export const controlValve = async (req, res) => {
         await user.save();
         return res.status(200).json({ message: "Valve state updated successfully" });
       } else {
-        return res.status(500).json({ error: "Failed to update valve state on device" });
+        return res.status(500).json({ message: "Failed to update valve state on device" });
       }
     } else if (source === "device") {
       // Request comes from the device

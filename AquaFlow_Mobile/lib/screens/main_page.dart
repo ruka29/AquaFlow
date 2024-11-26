@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:aquaflow_mobile/screens/device_details.dart';
 import 'package:aquaflow_mobile/screens/notifications.dart';
 import 'package:aquaflow_mobile/screens/search_devices.dart';
+import 'package:aquaflow_mobile/services/device_controller.dart';
+import 'package:aquaflow_mobile/services/secure_storage_helper.dart';
 import 'package:aquaflow_mobile/theme/theme.dart';
 import 'package:draggable_home/draggable_home.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../services/styles_&_fn_handle.dart';
 
@@ -14,7 +19,48 @@ class MainPage extends StatefulWidget {
   State<MainPage> createState() => _MainPageState();
 }
 
+Future<Map<String, dynamic>?> fetchUserData() async {
+  final token = await SecureStorageHelper.getToken();
+  if (token == null) {
+    print("No token found");
+    return null;
+  }
+
+  final response = await http.post(
+    Uri.parse('https://5fjm2w12-5000.asse.devtunnels.ms/api/auth/user'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return Map<String, dynamic>.from(json.decode(response.body));
+  } else {
+    print('Failed to fetch user data: ${response.body}');
+    return null;
+  }
+}
+
 class _MainPageState extends State<MainPage> {
+  Map<String, dynamic>? userData;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    final data = await fetchUserData();
+    if (data != null) {
+      setState(() {
+        userData = data;
+      });
+      print(userData);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return DraggableHome(
@@ -81,14 +127,22 @@ class _MainPageState extends State<MainPage> {
 
   Container container() {
     return Container(
-      child: Column(
+      child: userData == null ?
+      const Padding(
+        padding: EdgeInsets.only(top: 100.0),
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Colors.black,
+          ),
+        ),
+      ) : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 15.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 15.0),
             child: Text(
-              "Welcome, Rukshan!",
-              style: TextStyle(
+              "Welcome, ${userData!['name']}!",
+              style: const TextStyle(
                 fontFamily: "Nunito-Bold",
                 fontWeight: FontWeight.bold,
                 fontSize: 20.0
@@ -123,7 +177,7 @@ class _MainPageState extends State<MainPage> {
                   },
 
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -153,104 +207,178 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 15.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12.0),
-                border: Border.all(
-                  color: Colors.grey[200]!,
-                  width: 1.0,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4.0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12.0),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      SlidePageRoute(
-                        page: const DeviceDetailsPage(),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start, // Align texts to the left
-                          children: [
-                            Text(
-                              "Main Water Tank",
-                              style: TextStyle(
-                                  fontFamily: "Nunito",
-                                  fontSize: 20.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black
-                              ),
-                            ),
-
-                            SizedBox(height: 3.0,),
-
-                            Text(
-                              "Online",
-                              style: TextStyle(
-                                  fontFamily: "Nunito-Bold",
-                                  fontSize: 12.0,
-                                  color: Colors.green
-                              ),
-                            ),
-
-                            SizedBox(height: 7.0,),
-
-                            Text(
-                              "Water Level: 25% (250L)",
-                              style: TextStyle(
-                                  fontFamily: "Nunito",
-                                  fontSize: 15.0,
-                                  color: Colors.black
-                              ),
-                            )
-                          ],
+          // Conditional rendering based on userData
+          userData == null
+              ? const Center(
+                  child: CircularProgressIndicator(), // Show loading indicator
+                )
+                    : userData!['devices'].isEmpty
+                    ? const Padding(
+                      padding: EdgeInsets.all(15.0),
+                      child: Text(
+                        "No devices found.",
+                        style: TextStyle(
+                          fontFamily: "Nunito",
+                          fontSize: 15.0,
+                          color: Colors.black54,
                         ),
+                      ),
+                    )
+                        : ListView.builder(
+                          shrinkWrap: true, // Avoid unnecessary scrolling
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: userData!['devices'].length,
+                          itemBuilder: (context, index) {
+                            final device = userData!['devices'][index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15.0, vertical: 0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  border: Border.all(
+                                    color: Colors.grey[200]!,
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4.0,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        SlidePageRoute(
+                                          page: DeviceDetailsPage(macAddress: device['macAddress']),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15.0, vertical: 10.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                device['deviceName'] ?? 'Unknown Device',
+                                                style: const TextStyle(
+                                                  fontFamily: "Nunito",
+                                                  fontSize: 20.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 3.0),
+                                              Text(
+                                                device['status'] ?? 'Offline',
+                                                style: TextStyle(
+                                                  fontFamily: "Nunito-Bold",
+                                                  fontSize: 12.0,
+                                                  color: device['status'] == 'Online'
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 7.0),
+                                              Text(
+                                                "Water Level: ${device['waterLevel'] ?? 'N/A'}",
+                                                style: const TextStyle(
+                                                  fontFamily: "Nunito",
+                                                  fontSize: 15.0,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Switch(
+                                            activeColor: primaryColor,
+                                            thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
+                                                  (Set<MaterialState> states) {
+                                                if (states.contains(
+                                                    MaterialState.selected)) {
+                                                  return const Icon(
+                                                    Icons
+                                                        .power_settings_new_rounded,
+                                                    color: Colors.white,
+                                                  );
+                                                }
+                                                return const Icon(
+                                                  Icons
+                                                      .power_settings_new_rounded,
+                                                  color: primaryColor,
+                                                );
+                                              },
+                                            ),
+                                            trackOutlineColor:
+                                            MaterialStateProperty.all(primaryColor),
+                                            trackOutlineWidth:
+                                            MaterialStateProperty.all(1),
+                                            value: device['valveState'] ?? false,
+                                            onChanged: (value) async {
+                                              setState(() {
+                                                device['valveState'] = value;
+                                              });
+                                              try {
+                                                final response = await DeviceController.controlValve(device['macAddress'], value);
 
-                        Switch(
-                          activeColor: primaryColor,
-                          thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                                (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return const Icon(Icons.power_settings_new_rounded, color: Colors.white);
-                              }
-                              return const Icon(Icons.power_settings_new_rounded, color: primaryColor);
-                            },
-                          ),
-                          trackOutlineColor: MaterialStateProperty.all(primaryColor),
-                          trackOutlineWidth: MaterialStateProperty.all(1),
-                          value: false,
-                          onChanged: (value) {
-                            setState(() {
-                              var waterValueSwitch = value;
-                            });
+                                                final responseData = json.decode(response.body);
+
+                                                if (response.statusCode == 200) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      backgroundColor: Colors.green,
+                                                      content: Text("${responseData['message']}"),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  setState(() {
+                                                    device['valveState'] = !value;
+                                                  });
+
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      backgroundColor: Colors.red,
+                                                      content: Text("${responseData['message']}"),
+                                                    ),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                print('Error controlling valve: $e');
+                                                setState(() {
+                                                  device['valveState'] = !value;
+                                                });
+
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text('Error controlling valve: $e'),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
                           },
-                        )
-                      ],
                     ),
-                  ),
-                ),
-              ),
-            ),
-          )
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:aquaflow_mobile/screens/device_details.dart';
 import 'package:aquaflow_mobile/screens/device_settings.dart';
+import 'package:aquaflow_mobile/screens/enter_wifi_details.dart';
 import 'package:aquaflow_mobile/screens/main_page.dart';
 import 'package:aquaflow_mobile/screens/search_devices.dart';
 import 'package:flutter/material.dart';
@@ -17,11 +18,12 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "AquaFlow",
-      // home: ToggleScreens(),
+      home: ToggleScreens(),
       // home: DeviceDetailsPage(),
-      home: MainPage(),
+      // home: MainPage(),
       // home: DeviceSettings(),
       // home: SearchDevices(),
+      // home: EnterWifiDetails(),
     );
   }
 }

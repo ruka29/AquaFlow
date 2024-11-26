@@ -35,7 +35,7 @@ class _SignUpState extends State<SignUp> {
         _isLoading = true;
       });
 
-      final url = Uri.parse('http://localhost:5000/api/auth/register');
+      final url = Uri.parse('https://5fjm2w12-5000.asse.devtunnels.ms/api/auth/register');
       final body = json.encode({
         'name': _nameController.text,
         'email': _emailController.text,
@@ -144,11 +144,11 @@ class _SignUpState extends State<SignUp> {
                             labelStyle: input,
                             contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                             enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                             focusedBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                           ),
@@ -169,11 +169,11 @@ class _SignUpState extends State<SignUp> {
                             labelStyle: input,
                             contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                             enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                             focusedBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                           ),
@@ -198,11 +198,11 @@ class _SignUpState extends State<SignUp> {
                             labelStyle: input,
                             contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                             enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                             focusedBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
+                              borderRadius: BorderRadius.all(Radius.circular(12.0)),
                               borderSide: BorderSide(color: Colors.black45),
                             ),
                           ),
@@ -226,9 +226,9 @@ class _SignUpState extends State<SignUp> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
                             minimumSize: const Size.fromHeight(50),
-                            padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 15),
+                            padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 10),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
                           ),
                           child:  Text(
@@ -276,7 +276,7 @@ class _SignUpState extends State<SignUp> {
                           },
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size.fromHeight(50),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),

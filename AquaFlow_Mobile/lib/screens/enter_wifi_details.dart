@@ -1,5 +1,7 @@
+import 'package:aquaflow_mobile/screens/change_device_name.dart';
 import 'package:flutter/material.dart';
 
+import '../services/styles_&_fn_handle.dart';
 import '../theme/theme.dart';
 
 class EnterWifiDetails extends StatefulWidget {
@@ -17,148 +19,142 @@ class _EnterWifiDetailsState extends State<EnterWifiDetails> {
 
   @override
   Widget build(BuildContext context) {
+    double deviceHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       appBar: AppBar(),
 
       body: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Enter your WIFI credentials.",
-                        style: TextStyle(
-                          fontFamily: "Nunito-Bold",
-                          fontSize: 20.0,
-                          color: Colors.black,
-                        ),
+            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Enter your WIFI credentials.",
+                      style: TextStyle(
+                        fontFamily: "Nunito-Bold",
+                        fontSize: 20.0,
+                        color: Colors.black,
                       ),
+                    ),
 
-                      const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                        child: TextFormField(
-                          controller: _ssidController,
-                          decoration: InputDecoration(
-                            labelText: 'SSID',
-                            labelStyle: input,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                            enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              borderSide: BorderSide(color: Colors.black45),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              borderSide: BorderSide(color: Colors.black45),
-                            ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: TextFormField(
+                        controller: _ssidController,
+                        decoration: InputDecoration(
+                          labelText: 'SSID',
+                          labelStyle: input,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          enabledBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.black45),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.black45),
                           ),
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                        child: TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            labelStyle: input,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                            enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              borderSide: BorderSide(color: Colors.black45),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(8)),
-                              borderSide: BorderSide(color: Colors.black45),
-                            ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: input,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          enabledBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.black45),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderSide: BorderSide(color: Colors.black45),
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Note:",
-                        style: TextStyle(
-                          fontFamily: "Nunito-Bold",
-                          fontSize: 15.0,
-                          color: Colors.red,
-                        ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Note:",
+                      style: TextStyle(
+                        fontFamily: "Nunito-Bold",
+                        fontSize: 15.0,
+                        color: Colors.red,
                       ),
+                    ),
 
-                      const SizedBox(height: 5.0,),
+                    const SizedBox(height: 5.0,),
 
-                      const Text(
-                        "Make sure device is powered on and indicating red light.",
-                        style: TextStyle(
-                          fontFamily: "Nunito-Bold",
-                          fontSize: 13.0,
-                          color: Colors.black,
-                        ),
+                    const Text(
+                      "Make sure green light blinking twice a second.",
+                      style: TextStyle(
+                        fontFamily: "Nunito-Bold",
+                        fontSize: 13.0,
+                        color: Colors.black,
                       ),
+                    ),
 
-                      const SizedBox(height: 5.0,),
+                    const SizedBox(height: 5.0,),
 
-                      const Text(
-                        "Make sure your mobile has turned on WIFI.",
-                        style: TextStyle(
-                          fontFamily: "Nunito-Bold",
-                          fontSize: 13.0,
-                          color: Colors.black,
-                        ),
+                    const Text(
+                      "Enter your WIFI credentials, Then 'Continue'.",
+                      style: TextStyle(
+                        fontFamily: "Nunito-Bold",
+                        fontSize: 13.0,
+                        color: Colors.black,
                       ),
+                    ),
 
-                      const SizedBox(height: 5.0,),
+                    const SizedBox(height: 10.0,),
 
-                      const Text(
-                        "Select device and enter password on the popup window. Then 'Connect'.",
-                        style: TextStyle(
-                          fontFamily: "Nunito-Bold",
-                          fontSize: 13.0,
-                          color: Colors.black,
-                        ),
-                      ),
-
-                      const SizedBox(height: 10.0,),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            minimumSize: const Size.fromHeight(50),
-                            padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            SlidePageRoute(
+                              page: const ChangeDeviceName(),
                             ),
-                          ),
-                          child:  Text(
-                            'Continue',
-                            style: buttonTxt,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          minimumSize: const Size.fromHeight(50),
+                          padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        child:  Text(
+                          'Continue',
+                          style: buttonTxt,
+                        ),
                       ),
-                    ],
-                  )
-                ],
-              ),
+                    ),
+                  ],
+                )
+              ],
             ),
           ),
           if(_isLoading)

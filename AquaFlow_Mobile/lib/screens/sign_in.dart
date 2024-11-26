@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:aquaflow_mobile/services/secure_storage_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -21,11 +21,6 @@ class _SignInState extends State<SignIn> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
-  final _secureStorage = const FlutterSecureStorage();
-
-  Future<void> storeToken(String token) async {
-    await _secureStorage.write(key: 'jwt_token', value: token);
-  }
 
   void clearFields() {
     _emailController.clear();
@@ -37,7 +32,7 @@ class _SignInState extends State<SignIn> {
       _isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:5000/api/auth/login');
+    final url = Uri.parse('https://5fjm2w12-5000.asse.devtunnels.ms/api/auth/login');
     final body = json.encode({
       'email': _emailController.text,
       'password': _passwordController.text,
@@ -55,7 +50,7 @@ class _SignInState extends State<SignIn> {
         final token = responseData['token'];
         print("Token: $token");
 
-        await storeToken(token);
+        await SecureStorageHelper.saveToken(token);
 
         clearFields();
 
@@ -123,11 +118,11 @@ class _SignInState extends State<SignIn> {
                           labelStyle: input,
                           contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                           enabledBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderRadius: BorderRadius.all(Radius.circular(12.0)),
                             borderSide: BorderSide(color: Colors.black45),
                           ),
                           focusedBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderRadius: BorderRadius.all(Radius.circular(12.0)),
                             borderSide: BorderSide(color: Colors.black45),
                           ),
                         ),
@@ -143,11 +138,11 @@ class _SignInState extends State<SignIn> {
                           labelStyle: input,
                           contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                           enabledBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderRadius: BorderRadius.all(Radius.circular(12.0)),
                             borderSide: BorderSide(color: Colors.black45),
                           ),
                           focusedBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(8)),
+                            borderRadius: BorderRadius.all(Radius.circular(12.0)),
                             borderSide: BorderSide(color: Colors.black45),
                           ),
                         ),
@@ -162,9 +157,9 @@ class _SignInState extends State<SignIn> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           minimumSize: const Size.fromHeight(50),
-                          padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 15),
+                          padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 10),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12.0),
                           ),
                         ),
                         child:  Text(
@@ -212,7 +207,7 @@ class _SignInState extends State<SignIn> {
                         },
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(50),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 13),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.0),
                           ),

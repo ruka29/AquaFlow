@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const deviceSchema = new mongoose.Schema({
   macAddress: { type: String, required: true, unique: true }, // Device's MAC address
   deviceName: { type: String, required: true }, // Device name
+  deviceStatus: { type: String, required: true, default: "Offline" }, // Device status: Online/Offline
   valveState: { type: Boolean, default: false }, // Valve state: true (open), false (closed)
   waterLevel: { type: Number, required: true }, // Current water level in percentage
   lowThreshold: { type: Number, required: true }, // Low water level threshold
