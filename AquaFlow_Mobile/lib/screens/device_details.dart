@@ -83,19 +83,19 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
 
       int remainingDays = totalDaysInMonth - today.day;
 
-      double day1 = deviceData?['day1'] ?? 0.0;
-      double day2 = deviceData?['day2'] ?? 0.0;
-      double day3 = deviceData?['day3'] ?? 0.0;
-      double day4 = deviceData?['day4'] ?? 0.0;
-      double day5 = deviceData?['day5'] ?? 0.0;
-      double day6 = deviceData?['day6'] ?? 0.0;
-      double day7 = deviceData?['day7'] ?? 0.0;
+      int day1 = deviceData?['day1'] ?? 0;
+      int day2 = deviceData?['day2'] ?? 0;
+      int day3 = deviceData?['day3'] ?? 0;
+      int day4 = deviceData?['day4'] ?? 0;
+      int day5 = deviceData?['day5'] ?? 0;
+      int day6 = deviceData?['day6'] ?? 0;
+      int day7 = deviceData?['day7'] ?? 0;
 
       double averageUsage = (day1 + day2 + day3 + day4 + day5 + day6 + day7) / 7;
 
       double remainingMonthUsage = averageUsage * remainingDays;
 
-      double thisMonthUsage = deviceData?['thisMonthUsage'] ?? 0.0;
+      int thisMonthUsage = deviceData?['thisMonthUsage'] ?? 0;
 
       double estimateMonthlyUsage = thisMonthUsage + remainingMonthUsage;
       return double.parse(estimateMonthlyUsage.toStringAsFixed(2));
@@ -146,7 +146,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue[100],
+        // backgroundColor: Colors.lightBlue[100],
+        surfaceTintColor: Colors.white,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -186,11 +187,11 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   ),
 
                   Text(
-                    deviceData?['deviceStatus'],
+                    deviceData?['status'],
                     style: TextStyle(
                         fontFamily: "Nunito-Bold",
                         fontSize: 12.0,
-                        color: deviceData?['deviceStatus'] == "Online" ? Colors.green : Colors.red
+                        color: deviceData?['status'] == "online" ? Colors.green : Colors.red
                     ),
                   ),
                 ],
@@ -298,8 +299,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   const Text(
                     "Manual Control",
                     style: TextStyle(
-                      fontFamily: "Nunito",
-                      fontWeight: FontWeight.bold,
+                      fontFamily: "Nunito-Bold",
                       fontSize: 20.0
                     ),
                   ),
@@ -368,8 +368,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
               const Text(
                 "Last 7 Days Usage",
                 style: TextStyle(
-                    fontFamily: "Nunito",
-                    fontWeight: FontWeight.bold,
+                    fontFamily: "Nunito-Bold",
                     fontSize: 20.0
                 ),
               ),
@@ -458,8 +457,7 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   const Text(
                     "Monthly Usage",
                     style: TextStyle(
-                      fontFamily: "Nunito",
-                      fontWeight: FontWeight.bold,
+                      fontFamily: "Nunito-Bold",
                       fontSize: 20.0
                     ),
                   ),
@@ -567,6 +565,8 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 10.0,),
             ],
           ),
         ),

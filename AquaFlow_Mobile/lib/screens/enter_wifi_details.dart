@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:aquaflow_mobile/screens/change_device_name.dart';
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import '../services/secure_storage_helper.dart';
 import '../services/styles_&_fn_handle.dart';
 import '../theme/theme.dart';
 
@@ -16,6 +19,88 @@ class _EnterWifiDetailsState extends State<EnterWifiDetails> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
+
+  Future<bool> sendDetailsToDevice(String ssid, String password) async {
+    try {
+      final token = await SecureStorageHelper.getToken();
+      if (token == null) {
+        print("No token found");
+        return false;
+      }
+
+      final deviceUrl = Uri.parse('http://192.168.4.1/connect-wifi');
+      final body = json.encode({
+        "SSID": ssid,
+        "password": password,
+        "token": token,
+      });
+
+      final response = await http.post(
+        deviceUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print("Wi-Fi details sent successfully.");
+        return true;
+      } else {
+        print("Failed to send Wi-Fi details: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Error sending Wi-Fi details: $e");
+      return false;
+    }
+  }
+
+  void sendWifiDetails() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String ssid = _ssidController.text;
+    String password = _passwordController.text;
+
+    if (ssid.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('SSID and Password are required!'),
+        ),
+      );
+      return;
+    }
+
+    bool success = await sendDetailsToDevice(ssid, password);
+    if (success) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text('Wi-Fi details sent successfully!'),
+        ),
+      );
+      Navigator.push(
+        context,
+        SlidePageRoute(
+          page: const ChangeDeviceName(),
+        ),
+      );
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text('Failed to send Wi-Fi details. Try again!'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,14 +215,7 @@ class _EnterWifiDetailsState extends State<EnterWifiDetails> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            SlidePageRoute(
-                              page: const ChangeDeviceName(),
-                            ),
-                          );
-                        },
+                        onPressed: () => sendWifiDetails(),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           minimumSize: const Size.fromHeight(50),

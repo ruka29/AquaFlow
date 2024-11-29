@@ -23,3 +23,29 @@ export const scheduleMonthlyUsageReset = () => {
     }
   });
 };
+
+const OFFLINE_THRESHOLD = 5  * 1000;
+
+export const checkDeviceStatus = () => {
+  cron.schedule("*/1 * * * *", async () => {
+    try {
+      const users = await User.find();
+  
+      const now = new Date();
+  
+      users.forEach(async (user) => {
+        user.devices.forEach((device) => {
+          if (device.lastPing && now - new Date(device.lastPing) > OFFLINE_THRESHOLD) {
+            device.status = "offline";
+          }
+        });
+  
+        await user.save();
+      });
+  
+      console.log("Device status check complete");
+    } catch (error) {
+      console.error("Error checking device statuses:", error);
+    }
+  });
+}

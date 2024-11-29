@@ -1,7 +1,9 @@
 import axios from "axios";
-
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import User from "../models/User.js";
-import { sendWaterLevelToMobileApp, sendValveStateToMobileApp } from "../services/notificationService.js";
+// import { sendWaterLevelToMobileApp, sendValveStateToMobileApp } from "../services/notificationService.js";
+import { broadcastToUser, connectedDevices } from "../services/socketService.js";
 
 //register device to user
 export const registerDevice = async (req, res) => {
@@ -12,14 +14,25 @@ export const registerDevice = async (req, res) => {
     waterLevel,
     lowThreshold,
     highThreshold,
-    email,
   } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const userId = decoded.user?.id || decoded.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid token payload" });
+    }
+
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const existingDevice = user.devices.find(
@@ -44,9 +57,7 @@ export const registerDevice = async (req, res) => {
     user.devices.push(newDevice);
     await user.save();
 
-    res
-      .status(200)
-      .json({ message: "Device registered successfully", device: newDevice });
+    res.status(200).json({ message: "Device registered successfully" });
   } catch (error) {
     console.error("Error registering device:", error);
     res.status(500).json({ error: "Failed to register device" });
@@ -54,16 +65,20 @@ export const registerDevice = async (req, res) => {
 };
 
 export const getDeviceData = async (req, res) => {
-  const {macAddress} = req.body;
+  const { macAddress } = req.body;
 
-  try{
+  try {
     const user = await User.findOne({ "devices.macAddress": macAddress });
 
     if (!user) {
-      return res.status(404).json({ error: "Device not associated with any user" });
+      return res
+        .status(404)
+        .json({ error: "Device not associated with any user" });
     }
 
-    const device = user.devices.find((device) => device.macAddress === macAddress);
+    const device = user.devices.find(
+      (device) => device.macAddress === macAddress
+    );
 
     if (!device) {
       return res.status(404).json({ error: "Device not found" });
@@ -74,8 +89,7 @@ export const getDeviceData = async (req, res) => {
     console.error("Error getting device data:", error);
     res.status(500).json({ message: "Failed to get device data" });
   }
-}
-
+};
 
 //change tank data(capacity and height)
 export const updateTankData = async (req, res) => {
@@ -107,7 +121,6 @@ export const updateTankData = async (req, res) => {
     res.status(500).json({ error: "Failed to update tank data" });
   }
 };
-
 
 //update threshold values
 export const updateThresholds = async (req, res) => {
@@ -155,9 +168,12 @@ export const updateThresholds = async (req, res) => {
   }
 };
 
-
 //send updated threshold values to device
-const sendThresholdUpdateToDevice = async ({ macAddress, lowThreshold, highThreshold }) => {
+const sendThresholdUpdateToDevice = async ({
+  macAddress,
+  lowThreshold,
+  highThreshold,
+}) => {
   try {
     const deviceApiUrl = `http://device-ip-or-cloud-endpoint/update-threshold`;
 
@@ -174,7 +190,6 @@ const sendThresholdUpdateToDevice = async ({ macAddress, lowThreshold, highThres
   }
 };
 
-
 //update water level
 export const updateWaterLevel = async (req, res) => {
   const { macAddress, waterLevel } = req.body;
@@ -183,10 +198,14 @@ export const updateWaterLevel = async (req, res) => {
     const user = await User.findOne({ "devices.macAddress": macAddress });
 
     if (!user) {
-      return res.status(404).json({ error: "Device not associated with any user" });
+      return res
+        .status(404)
+        .json({ error: "Device not associated with any user" });
     }
 
-    const device = user.devices.find((device) => device.macAddress === macAddress);
+    const device = user.devices.find(
+      (device) => device.macAddress === macAddress
+    );
 
     if (!device) {
       return res.status(404).json({ error: "Device not found" });
@@ -196,7 +215,7 @@ export const updateWaterLevel = async (req, res) => {
 
     await user.save();
 
-    await sendWaterLevelToMobileApp(user.email, macAddress, waterLevel);
+    // await sendWaterLevelToMobileApp(user.email, macAddress, waterLevel);
 
     res.status(200).json({ message: "Water level updated successfully" });
   } catch (error) {
@@ -204,7 +223,6 @@ export const updateWaterLevel = async (req, res) => {
     res.status(500).json({ error: "Failed to update water level" });
   }
 };
-
 
 //update valve state
 export const controlValve = async (req, res) => {
@@ -218,18 +236,19 @@ export const controlValve = async (req, res) => {
     }
 
     const device = user.devices.find((d) => d.macAddress === macAddress);
-
     if (!device) {
       return res.status(404).json({ error: "Device not found" });
     }
 
     const currentTime = new Date();
-    const currentWaterLevel = await getCurrentWaterLevel(macAddress);
+    const currentWaterLevel = device.waterLevel;
 
+    // Handle source = "mobile"
     if (source === "mobile") {
-      const success = await sendRequestToDevice(macAddress, valveState);
+      const success = await sendRequestToDevice(macAddress, valveState); // Send valve state to the device
 
       if (success) {
+        // Update the database
         await updateValveStateInDatabase(
           device,
           valveState,
@@ -237,12 +256,18 @@ export const controlValve = async (req, res) => {
           currentWaterLevel
         );
         await user.save();
-        return res.status(200).json({ message: "Valve state updated successfully" });
+
+        // Send acknowledgment back to the mobile app
+        return res
+          .status(200)
+          .json({ message: "Valve state updated successfully" });
       } else {
-        return res.status(500).json({ message: "Failed to update valve state on device" });
+        return res
+          .status(500)
+          .json({ error: "Failed to update valve state on device" });
       }
     } else if (source === "device") {
-      // Request comes from the device
+      // Update the database
       await updateValveStateInDatabase(
         device,
         valveState,
@@ -251,10 +276,17 @@ export const controlValve = async (req, res) => {
       );
       await user.save();
 
-      // Notify the mobile app
-      await sendValveStateToMobileApp(user.email, macAddress, valveState);
+      // Notify the mobile app via WebSocket
+      broadcastToUser(user._id.toString(), {
+        type: "valveStateUpdate",
+        macAddress,
+        valveState,
+        waterLevel: currentWaterLevel,
+      });
 
-      return res.status(200).json({ message: "Valve state updated and mobile app notified" });
+      return res
+        .status(200)
+        .json({ message: "Valve state updated and mobile app notified" });
     } else {
       return res.status(400).json({ error: "Invalid source" });
     }
@@ -263,7 +295,6 @@ export const controlValve = async (req, res) => {
     res.status(500).json({ error: "Failed to control valve" });
   }
 };
-
 
 //get current water level from device
 const getCurrentWaterLevel = async (macAddress) => {
@@ -278,7 +309,6 @@ const getCurrentWaterLevel = async (macAddress) => {
   }
 };
 
-
 //update valve state in database
 const updateValveStateInDatabase = async (
   device,
@@ -286,29 +316,68 @@ const updateValveStateInDatabase = async (
   currentTime,
   currentWaterLevel
 ) => {
-  if (valveState === true) {
+  if (valveState === 1 || valveState === true) {
     const usage = device.valveCloseLevel - currentWaterLevel;
 
+    device.valveState = true;
     device.valveOpenTime = currentTime;
     device.valveOpenLevel = currentWaterLevel;
     device.thisMonthUsage += usage > 0 ? usage : 0;
-  } else if (valveState === false) {
+  } else if (valveState === 0 || valveState === false) {
+    device.valveState = false;
     device.valveCloseTime = currentTime;
     device.valveCloseLevel = currentWaterLevel;
   }
 };
 
-
 //send updated valve state to device
-const sendRequestToDevice = async (macAddress, valveState) => {
+export const sendRequestToDevice = async (macAddress, valveState) => {
   try {
-    const deviceUrl = `http://${macAddress}/control-valve`;
+    const deviceSocket = connectedDevices.get(macAddress); // Get the WebSocket for the given MAC address
 
-    const response = await axios.post(deviceUrl,{ macAddress, valveState });
-
-    return response.status === 200;
+    if (deviceSocket && deviceSocket.readyState === 1) { // Check if the device is connected
+      deviceSocket.send(
+        JSON.stringify({
+          type: "control-valve",
+          valveState,
+        })
+      );
+      console.log(`Message sent to device [${macAddress}]:`, message);
+      return true;
+    } else {
+      console.error(`Device with MAC address ${macAddress} is not connected`);
+      return false;
+    }
   } catch (error) {
-    console.error("Failed to communicate with the device:", error.message);
+    console.error("Error sending request to device:", error.message);
     return false;
+  }
+};
+
+export const heartbeat = async (req, res) => {
+  const { macAddress } = req.body;
+
+  try {
+    const user = await User.findOne({ "devices.macAddress": macAddress });
+    if (!user) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    const device = user.devices.find((d) => d.macAddress === macAddress);
+    if (!device) {
+      return res
+        .status(404)
+        .json({ error: "Device not found in user's account" });
+    }
+
+    device.status = "online";
+    device.lastPing = new Date();
+
+    await user.save();
+
+    res.status(200).json({ message: "Heartbeat received, device is online" });
+  } catch (error) {
+    console.error("Error processing heartbeat:", error);
+    res.status(500).json({ error: "Failed to update device status" });
   }
 };

@@ -9,6 +9,8 @@ import 'package:aquaflow_mobile/theme/theme.dart';
 import 'package:draggable_home/draggable_home.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/status.dart' as status;
 
 import '../services/styles_&_fn_handle.dart';
 
@@ -44,11 +46,15 @@ Future<Map<String, dynamic>?> fetchUserData() async {
 
 class _MainPageState extends State<MainPage> {
   Map<String, dynamic>? userData;
+  late WebSocketChannel channel;
+  String userId = "";
+  String receivedMessage = "";
 
   @override
   void initState() {
     super.initState();
     loadUserData();
+    connectToWebSocket();
   }
 
   Future<void> loadUserData() async {
@@ -56,15 +62,65 @@ class _MainPageState extends State<MainPage> {
     if (data != null) {
       setState(() {
         userData = data;
+        userId = userData!['_id'];
       });
+      print(userId);
       print(userData);
     }
+  }
+
+  void connectToWebSocket() {
+    final webSocketUrl = "ws://5fjm2w12-5000.asse.devtunnels.ms:3000?userId=$userId";
+    channel = WebSocketChannel.connect(Uri.parse(webSocketUrl));
+
+    // Listen for messages
+    channel.stream.listen(
+          (message) {
+        setState(() {
+          receivedMessage = message;
+        });
+        print("Message from server: $message");
+      },
+      onError: (error) {
+        print("WebSocket error: $error");
+      },
+      onDone: () {
+        print("WebSocket connection closed");
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    // Close the WebSocket connection
+    channel.sink.close(status.goingAway);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return DraggableHome(
       alwaysShowLeadingAndAction: true,
+      floatingActionButton: OutlinedButton(
+        onPressed: () => loadUserData(),
+
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          side: BorderSide(
+            color: const Color(0xFF308EFF).withOpacity(0.2), // subtle border matching the button color
+            width: 1.0,
+          ),
+          backgroundColor: const Color(0xFF308EFF),
+        ),
+
+        child: const Icon(
+          Icons.refresh_rounded,
+          color: Colors.white,
+          size: 15.0,
+        ),
+      ),
       leading: IconButton(
         onPressed: () {
           Navigator.push(
@@ -283,11 +339,11 @@ class _MainPageState extends State<MainPage> {
                                               ),
                                               const SizedBox(height: 3.0),
                                               Text(
-                                                device['status'] ?? 'Offline',
+                                                device['status'] ?? 'offline',
                                                 style: TextStyle(
                                                   fontFamily: "Nunito-Bold",
                                                   fontSize: 12.0,
-                                                  color: device['status'] == 'Online'
+                                                  color: device['status'] == 'online'
                                                       ? Colors.green
                                                       : Colors.red,
                                                 ),

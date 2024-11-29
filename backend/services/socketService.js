@@ -1,26 +1,79 @@
-import { Server } from "socket.io";
+import { WebSocketServer } from "ws";
 
-let io;
+export const connectedClients = new Map();
+export const connectedDevices = new Map();
 
-export const initializeSocket = (server) => {
-  io = new Server(server, {
-    cors: {
-      origin: "*", // Replace with your mobile app's domain in production
-    },
+export const initializeWebSocketServer = (server) => {
+  const wss = new WebSocketServer({ server });
+
+  console.log("WebSocket server initialized");
+
+  wss.on("connection", (ws, req) => {
+    try {
+      const host = req.headers.host || "localhost";
+      const urlParams = new URL(req.url, `http://${host}`).searchParams;
+
+      if (urlParams.has("userId")) {
+        const userId = urlParams.get("userId");
+        connectedClients.set(userId, ws);
+        console.log(`Client connected with userId: ${userId}`);
+      } else if (urlParams.has("macAddress")) {
+        const macAddress = urlParams.get("macAddress");
+        connectedDevices.set(macAddress, ws);
+        console.log(`Device connected with MAC address: ${macAddress}`);
+      } else {
+        console.log("Invalid WebSocket connection attempt");
+        ws.close(1003, "Invalid connection"); // 1003: Unsupported Data
+        return;
+      }
+
+      // Handle incoming messages
+      ws.on("message", (message) => {
+        console.log("Message received:", message);
+      });
+
+      // Handle connection closure
+      ws.on("close", () => {
+        console.log("WebSocket closed");
+        connectedClients.forEach((socket, userId) => {
+          if (socket === ws) connectedClients.delete(userId);
+        });
+        connectedDevices.forEach((socket, macAddress) => {
+          if (socket === ws) connectedDevices.delete(macAddress);
+        });
+      });
+
+      // Handle errors
+      ws.on("error", (error) => {
+        console.error("WebSocket error:", error.message);
+      });
+    } catch (error) {
+      console.error("Error handling WebSocket connection:", error.message);
+      ws.close(1011, "Internal server error"); // 1011: Server Error
+    }
   });
 
-  io.on("connection", (socket) => {
-    console.log("A user connected");
-
-    socket.on("join", (email) => {
-      socket.join(email);
-      console.log(`User with email ${email} joined the room`);
+  // Ping all connected clients/devices periodically
+  setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.readyState === ws.OPEN) {
+        ws.ping();
+      }
     });
-
-    socket.on("disconnect", () => {
-      console.log("A user disconnected");
-    });
-  });
+  }, 30000); // Every 30 seconds
 };
 
-export { io };
+/**
+ * Broadcast a message to a specific client
+ * @param {string} userId - The user ID to send the message to
+ * @param {object} data - The data to send
+ */
+export const broadcastToUser = (userId, data) => {
+  const client = connectedClients.get(userId);
+  if (client && client.readyState === 1) {
+    client.send(JSON.stringify(data)); // Send data as JSON string
+    console.log(`Sent message to userId: ${userId}`);
+  } else {
+    console.warn(`Client with userId ${userId} is not connected`);
+  }
+};

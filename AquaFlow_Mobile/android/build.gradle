@@ -3,6 +3,14 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy {
+            // Force all dependencies to use the same Kotlin version
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.21'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21'
+        }
+    }
 }
 
 rootProject.buildDir = '../build'
