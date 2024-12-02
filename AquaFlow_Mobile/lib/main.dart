@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "AquaFlow",
-      home: ToggleScreens(),
+       home: ToggleScreens(),
       // home: DeviceDetailsPage(),
       // home: MainPage(),
       // home: DeviceSettings(),

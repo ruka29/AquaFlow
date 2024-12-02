@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:aquaflow_mobile/screens/device_details.dart';
 import 'package:aquaflow_mobile/screens/notifications.dart';
+import 'package:aquaflow_mobile/screens/profile_page.dart';
 import 'package:aquaflow_mobile/screens/search_devices.dart';
 import 'package:aquaflow_mobile/services/device_controller.dart';
 import 'package:aquaflow_mobile/services/secure_storage_helper.dart';
@@ -123,11 +124,12 @@ class _MainPageState extends State<MainPage> {
       ),
       leading: IconButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            SlidePageRoute(
-              page: const NotificationsPage(),
-            ),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (context) {
+                    return ProfilePage();
+                  }
+              )
           );
         },
         icon: const Icon(Icons.menu_rounded),
