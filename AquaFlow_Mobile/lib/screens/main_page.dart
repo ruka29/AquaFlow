@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:aquaflow_mobile/screens/device_details.dart';
@@ -50,12 +51,15 @@ class _MainPageState extends State<MainPage> {
   late WebSocketChannel channel;
   String userId = "";
   String receivedMessage = "";
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     loadUserData();
-    connectToWebSocket();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      loadUserData();
+    });
   }
 
   Future<void> loadUserData() async {
@@ -93,8 +97,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
-    // Close the WebSocket connection
-    channel.sink.close(status.goingAway);
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -102,34 +105,33 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return DraggableHome(
       alwaysShowLeadingAndAction: true,
-      floatingActionButton: OutlinedButton(
-        onPressed: () => loadUserData(),
-
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          side: BorderSide(
-            color: const Color(0xFF308EFF).withOpacity(0.2), // subtle border matching the button color
-            width: 1.0,
-          ),
-          backgroundColor: const Color(0xFF308EFF),
-        ),
-
-        child: const Icon(
-          Icons.refresh_rounded,
-          color: Colors.white,
-          size: 15.0,
-        ),
-      ),
+      // floatingActionButton: OutlinedButton(
+      //   onPressed: () => loadUserData(),
+      //
+      //   style: OutlinedButton.styleFrom(
+      //     shape: RoundedRectangleBorder(
+      //       borderRadius: BorderRadius.circular(8.0),
+      //     ),
+      //     side: BorderSide(
+      //       color: const Color(0xFF308EFF).withOpacity(0.2), // subtle border matching the button color
+      //       width: 1.0,
+      //     ),
+      //     backgroundColor: const Color(0xFF308EFF),
+      //   ),
+      //
+      //   child: const Icon(
+      //     Icons.refresh_rounded,
+      //     color: Colors.white,
+      //     size: 15.0,
+      //   ),
+      // ),
       leading: IconButton(
         onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                  builder: (context) {
-                    return ProfilePage();
-                  }
-              )
+          Navigator.push(
+            context,
+            SlidePageRoute(
+              page: const ProfilePage(),
+            ),
           );
         },
         icon: const Icon(Icons.menu_rounded),

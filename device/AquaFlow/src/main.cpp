@@ -4,15 +4,11 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <WebSocketsClient.h>
+#include <ArduinoJson.h>
 
 // Access Point credentials
 const char *apSSID = "AquaFlow-Tank-Controller";
 const char *apPassword = "12345678";
-
-// WebSocket server details
-const char* WS_HOST = "5fjm2w12-5000.asse.devtunnels.ms"; // Your public tunnel host
-const int WS_PORT = 443;
-const String MAC_ADDRESS = WiFi.macAddress();
 
 // LED pin for status indication
 const int ledPin = 2;
@@ -24,7 +20,7 @@ const int valvePin = 23;
 // Tank configuration
 const float tankHeight = 100.0;       // Total tank height in cm
 const float capacity = 10.0;          // Tank capacity in liters
-const float maxThreshold = 95.0;      // Maximum water level percentage
+const float maxThreshold = 90.0;      // Maximum water level percentage
 const float minThreshold = 20.0;      // Minimum water level percentage
 float waterLevel  = 0.0;
 float oldWaterLevel = 0.0;
@@ -32,7 +28,6 @@ bool valveState = false;
 
 // Preferences to store Wi-Fi credentials
 Preferences preferences;
-WebSocketsClient webSocket;
 WiFiClientSecure client;
 
 // HTTP Server
@@ -40,7 +35,7 @@ WebServer server(80);
 
 // Time tracking for the heartbeat
 unsigned long lastHeartbeatTime = 0;
-const unsigned long heartbeatInterval = 60000; // 1 minute (60,000 ms)
+const unsigned long heartbeatInterval = 1000; // 1 minute (60,000 ms)
 
 // Function prototypes
 void handleConnectWiFi();
@@ -53,7 +48,6 @@ void readWaterLevel();
 void autoControlValve();
 void manualValveControl();
 void updateWaterLevel();
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
 
 void setup() {
   Serial.begin(115200);
@@ -74,13 +68,6 @@ void setup() {
   if (savedSSID != "" && savedPassword != "") {
     // Attempt to connect to saved Wi-Fi credentials
     connectToWiFi(savedSSID, savedPassword);
-
-    String wsUrlStr = String("/?macAddress=AC:15:18:D6:61:18");
-    const char* wsUrl = wsUrlStr.c_str();
-
-    // Updated to use secure WebSocket (wss://)
-    webSocket.beginSslWithCA(WS_HOST, WS_PORT, wsUrl);
-    webSocket.onEvent(webSocketEvent);
   } else {
     // Start Access Point mode if no credentials are found
     Serial.println("No Wi-Fi credentials found. Starting in Access Point mode...");
@@ -102,9 +89,6 @@ void loop() {
   // Handle HTTP server requests in AP mode
   server.handleClient();
 
-  // Keep WebSocket connection alive
-  webSocket.loop();
-
   // LED indication based on AP status
   if (WiFi.getMode() == WIFI_AP) {
     int numConnectedDevices = WiFi.softAPgetStationNum();
@@ -125,15 +109,14 @@ void loop() {
   }
 
   // Send heartbeat every minute
-  static unsigned long lastSendTime = 0;
-  if (millis() - lastSendTime > 5000) {
-    String message = "Device status: OK";
-    webSocket.sendTXT(message);
-    lastSendTime = millis();
+  unsigned long currentTime = millis();
+  if (currentTime - lastHeartbeatTime >= heartbeatInterval) {
+    lastHeartbeatTime = currentTime;
     sendHeartbeat();
   }
 
   readWaterLevel();
+  manualValveControl();
 }
 
 // Handle the "/connect-wifi" HTTP endpoint
@@ -212,21 +195,6 @@ void turnOffAP() {
 void handleWiFiRetry() {
   delay(5000); // Wait before retrying
   ESP.restart(); // Restart the ESP32 to retry connecting
-}
-
-// Function to handle incoming WebSocket messages
-void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
-  switch(type) {
-    case WStype_CONNECTED:
-      Serial.println("WebSocket Connected");
-      break;
-    case WStype_DISCONNECTED:
-      Serial.println("WebSocket Disconnected");
-      break;
-    case WStype_TEXT:
-      Serial.printf("Received: %s\n", payload);
-      break;
-  }
 }
 
 // Register the device with the backend
@@ -434,39 +402,87 @@ void autoControlValve() {
 
     http.end();
   } else {
-      Serial.println("Wi-Fi is not connected. Cannot update valve state.");
+    Serial.println("Wi-Fi is not connected. Cannot update valve state.");
   }
 }
 
+
 void manualValveControl() {
-  if (server.method() == HTTP_POST && server.hasArg("plain")) {
-    String body = server.arg("plain");
-    Serial.println("Received JSON payload:");
-    Serial.println(body);
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Get valve state in the database...");
 
-    // Extract SSID, password, and JWT token from the JSON payload
-    String macAddress = extractValue(body, "macAddress");
-    bool userValveState = extractValue(body, "valveState");
+    WiFiClientSecure client;
+    client.setInsecure(); // For development only
 
-    if (macAddress == WiFi.macAddress() && userValveState != -1) {
-      if(userValveState == true) {
-        digitalWrite(valvePin, HIGH);
-        valveState = true;
-        Serial.print("Valve Opened!");
-      } else if(userValveState == false) {
-        digitalWrite(valvePin, LOW);
-        valveState = false;
-        Serial.print("Valve Closed!");
+    HTTPClient http;
+    String serverUrl = "https://5fjm2w12-5000.asse.devtunnels.ms/api/device/get-valve-state";
+
+    Serial.print("Connecting to server: ");
+    Serial.println(serverUrl);
+
+    // Prepare JSON payload
+    String payload = "{";
+    payload += "\"macAddress\":\"" + WiFi.macAddress() + "\"";
+    payload += "}";
+
+    Serial.println("Payload: " + payload); // Debugging
+
+    http.begin(client, serverUrl); // Secure connection
+    http.addHeader("Content-Type", "application/json");
+
+    int httpResponseCode = http.POST(payload);
+
+    if (httpResponseCode > 0) {
+      Serial.print("Response code: ");
+      Serial.println(httpResponseCode);
+
+      // Read and parse the response
+      String response = http.getString();
+      Serial.println("Response: " + response);
+
+      // Parse the JSON response
+      StaticJsonDocument<200> doc;
+      DeserializationError error = deserializeJson(doc, response);
+
+      if (error) {
+        Serial.print("JSON deserialization failed: ");
+        Serial.println(error.c_str());
+      } else {
+        // Extract the status value
+        bool status = doc["status"];
+        if (status && valveState != true) {
+          digitalWrite(valvePin, HIGH);
+          valveState = true;
+          Serial.print("Valve Opened!");
+        } else if (status == false && valveState != false) {
+          digitalWrite(valvePin, LOW);
+          valveState = false;
+          Serial.print("Valve Closed!");
+        }
       }
 
-      // Respond to the client
-      server.send(200, "application/json", "{\"status\":\"success\",\"message\":\"Valve " + String(valveState ? "opened" : "closed") + "\"}");
+      // Handle true/false response
+      // if (response == "true" && valveState != true) {
+      //   digitalWrite(valvePin, HIGH);
+      //   valveState = true;
+      //   Serial.print("Valve Opened!");
+      // } else if (response == "false" && valveState != false) {
+      //   digitalWrite(valvePin, LOW);
+      //   valveState = false;
+      //   Serial.print("Valve Closed!");
+      // } else {
+      //   Serial.println("Unexpected response: " + response);
+      // }
     } else {
-      server.send(400, "application/json", "{\"status\":\"error\",\"message\":\"Different device or invalid valve state.\"}");
+      Serial.print("Error on sending PATCH: ");
+      Serial.println(http.errorToString(httpResponseCode).c_str());
     }
+
+    http.end();
   } else {
-    server.send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid request.\"}");
+    Serial.println("Wi-Fi is not connected. Cannot get valve state.");
   }
+  delay(1000);
 }
 
 // Extract values from a JSON string

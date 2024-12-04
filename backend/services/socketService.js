@@ -1,4 +1,5 @@
 import { WebSocketServer } from "ws";
+import { registerDevice } from "../controllers/webSocketDeviceController.js";
 
 export const connectedClients = new Map();
 export const connectedDevices = new Map();
@@ -28,8 +29,33 @@ export const initializeWebSocketServer = (server) => {
       }
 
       // Handle incoming messages
-      ws.on("message", (message) => {
-        console.log("Message received:", message);
+      ws.on("message", async (message) => {
+        try {
+          // Parse the incoming JSON message
+          const parsedMessage = JSON.parse(message.toString());
+          
+          // Log the parsed message for debugging
+          console.log("Parsed Message:", parsedMessage);
+      
+          // Example of handling different message types
+          if (parsedMessage.type) {
+            switch (parsedMessage.type) {
+              case 'registerDevice':
+                await registerDevice(ws, parsedMessage);
+                break;
+              case 'deviceStatus':
+                console.log('Device Status:', parsedMessage.data);
+                break;
+              case 'sensorReading':
+                console.log('Sensor Reading:', parsedMessage.data);
+                break;
+              default:
+                console.log('Unhandled message type:', parsedMessage.type);
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing JSON message:', error);
+        }
       });
 
       // Handle connection closure

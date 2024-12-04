@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -20,11 +21,15 @@ class DeviceDetailsPage extends StatefulWidget {
 class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
   Map<String, dynamic>? deviceData;
   String? errorMessage;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     fetchDeviceDetails();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      fetchDeviceDetails();
+    });
   }
 
   Future<void> fetchDeviceDetails() async {
@@ -64,6 +69,12 @@ class _DeviceDetailsPageState extends State<DeviceDetailsPage> {
       final date = now.subtract(Duration(days: 6 - index));
       return dateFormatter.format(date);
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override

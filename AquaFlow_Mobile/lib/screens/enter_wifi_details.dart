@@ -83,11 +83,9 @@ class _EnterWifiDetailsState extends State<EnterWifiDetails> {
           content: Text('Wi-Fi details sent successfully!'),
         ),
       );
-      Navigator.push(
-        context,
-        SlidePageRoute(
-          page: const ChangeDeviceName(),
-        ),
+      Navigator.of(context).pushAndRemoveUntil(
+        SlidePageRoute(page: const ChangeDeviceName()),
+            (Route<dynamic> route) => false,
       );
     } else {
       setState(() {

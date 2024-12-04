@@ -8,7 +8,7 @@ import deviceRoutes from "./routes/deviceRoutes.js"
 
 import connectDB from "./config/db.js";
 import { initializeWebSocketServer } from "./services/socketService.js";
-import { scheduleMonthlyUsageReset, checkDeviceStatus } from "./utils/cronJob.js";
+import { scheduleMonthlyUsageReset, checkDeviceStatus, scheduleDailyUsageReset } from "./utils/cronJob.js";
 
 // Initialize app
 const app = express();
@@ -28,6 +28,7 @@ app.use("/api/device", deviceRoutes);
 // WebSocket for real-time updates
 initializeWebSocketServer(server);
 scheduleMonthlyUsageReset();
+scheduleDailyUsageReset();
 checkDeviceStatus();
 
 // Start server

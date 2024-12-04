@@ -24,6 +24,34 @@ export const scheduleMonthlyUsageReset = () => {
   });
 };
 
+export const scheduleDailyUsageReset = () => {
+  cron.schedule("0 0 23 * *", async () => {
+    console.log("Running daily usage reset...");
+
+    try {
+      const users = await User.find();
+
+      for (const user of users) {
+        for (const device of user.devices) {
+          device.day1 = device.day2;
+          device.day2 = device.day3;
+          device.day3 = device.day4;
+          device.day4 = device.day5;
+          device.day5 = device.day6;
+          device.day6 = device.day7;
+          device.day7 = 0;
+        }
+
+        await user.save();
+      }
+
+      console.log("Daily usage reset completed successfully.");
+    } catch (error) {
+      console.error("Error during monthly usage reset:", error.message);
+    }
+  });
+};
+
 const OFFLINE_THRESHOLD = 5  * 1000;
 
 export const checkDeviceStatus = () => {

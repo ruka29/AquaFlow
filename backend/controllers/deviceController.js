@@ -211,6 +211,8 @@ export const updateWaterLevel = async (req, res) => {
       return res.status(404).json({ error: "Device not found" });
     }
 
+    await updateWaterUsage(device, waterLevel);
+
     device.waterLevel = waterLevel;
 
     await user.save();
@@ -223,6 +225,17 @@ export const updateWaterLevel = async (req, res) => {
     res.status(500).json({ error: "Failed to update water level" });
   }
 };
+
+const updateWaterUsage = async (device, newWaterLevel) => {
+  if(newWaterLevel < device.waterLevel) {
+    const percentageDifference = device.waterLevel - newWaterLevel;
+    const tankCapacity = device.tankCapacity || 0; // Tank capacity in liters
+    const waterUsed = (percentageDifference / 100) * tankCapacity;
+
+    device.day7 += waterUsed;
+    device.thisMonthUsage += waterUsed;
+  }
+}
 
 //update valve state
 export const controlValve = async (req, res) => {
@@ -245,27 +258,18 @@ export const controlValve = async (req, res) => {
 
     // Handle source = "mobile"
     if (source === "mobile") {
-      const success = await sendRequestToDevice(macAddress, valveState); // Send valve state to the device
+      await updateValveStateInDatabase(
+        device,
+        valveState,
+        currentTime,
+        currentWaterLevel
+      );
+      await user.save();
 
-      if (success) {
-        // Update the database
-        await updateValveStateInDatabase(
-          device,
-          valveState,
-          currentTime,
-          currentWaterLevel
-        );
-        await user.save();
-
-        // Send acknowledgment back to the mobile app
-        return res
-          .status(200)
-          .json({ message: "Valve state updated successfully" });
-      } else {
-        return res
-          .status(500)
-          .json({ error: "Failed to update valve state on device" });
-      }
+      // Send acknowledgment back to the mobile app
+      return res
+        .status(200)
+        .json({ message: "Valve state updated successfully" });
     } else if (source === "device") {
       // Update the database
       await updateValveStateInDatabase(
@@ -275,14 +279,6 @@ export const controlValve = async (req, res) => {
         currentWaterLevel
       );
       await user.save();
-
-      // Notify the mobile app via WebSocket
-      broadcastToUser(user._id.toString(), {
-        type: "valveStateUpdate",
-        macAddress,
-        valveState,
-        waterLevel: currentWaterLevel,
-      });
 
       return res
         .status(200)
@@ -297,15 +293,26 @@ export const controlValve = async (req, res) => {
 };
 
 //get current water level from device
-const getCurrentWaterLevel = async (macAddress) => {
-  try {
-    const deviceUrl = `http://${macAddress}/water-level`;
+export const getValveState = async (req, res) => {
+  const { macAddress } = req.body;
 
-    const response = await axios.get(deviceUrl);
-    return response.data.waterLevel;
+  try {
+    const user = await User.findOne({ "devices.macAddress": macAddress });
+    if (!user) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    const device = user.devices.find((d) => d.macAddress === macAddress);
+    if (!device) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    const valveState = device.valveState;
+
+    res.status(200).json({ status: valveState });
   } catch (error) {
-    console.error("Failed to get water level from device:", error.message);
-    throw new Error("Failed to fetch water level");
+    console.error("Error getting Valve state:", error);
+    res.status(500).json({ error: "Failed to get valve State" });
   }
 };
 
@@ -353,6 +360,7 @@ export const sendRequestToDevice = async (macAddress, valveState) => {
     return false;
   }
 };
+
 
 export const heartbeat = async (req, res) => {
   const { macAddress } = req.body;

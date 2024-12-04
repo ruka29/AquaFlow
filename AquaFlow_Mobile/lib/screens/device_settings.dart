@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/theme.dart';
+
 class DeviceSettings extends StatefulWidget {
   const DeviceSettings({super.key});
 
@@ -10,6 +12,140 @@ class DeviceSettings extends StatefulWidget {
 class _DeviceSettingsState extends State<DeviceSettings> {
   @override
   Widget build(BuildContext context) {
+    void changeDeviceName({
+      required BuildContext context,
+      required String name,
+      required Function(String password) onConnect,
+    }) {
+      final TextEditingController nameController = TextEditingController();
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+            ),
+            title: Text(
+              "Change Device Name",
+              style: const TextStyle(fontFamily: "Nunito-Bold", fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            content: TextFormField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: name,
+                labelStyle: input,
+                contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                enabledBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                  borderSide: BorderSide(color: Colors.black45),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                  borderSide: BorderSide(color: Colors.black45),
+                ),
+              ),
+            ),
+            actions: [
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  backgroundColor: Colors.grey[200],
+                ),
+
+                child: const Text(
+                    "Cancel",
+                    style: TextStyle(
+                      fontFamily: 'Nunito-Bold',
+                      fontSize: 15.0,
+                      color: Colors.black,
+                    )
+                ),
+              ),
+
+              OutlinedButton(
+                onPressed: () {
+                  String name = nameController.text;
+                  if (name.isNotEmpty) {
+                    Navigator.of(context).pop(); // Close the dialog
+                    onConnect(name); // Pass the password to the callback
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text("Password cannot be empty."),
+                      ),
+                    );
+                  }
+                },
+
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  side: BorderSide(
+                    color: const Color(0xFF308EFF).withOpacity(0.2), // subtle border matching the button color
+                    width: 1.0,
+                  ),
+                  backgroundColor: const Color(0xFF308EFF),
+                ),
+
+                child: const Text(
+                    "Save",
+                    style: TextStyle(
+                      fontFamily: 'Nunito-Bold',
+                      fontSize: 15.0,
+                      color: Colors.white,
+                    )
+                ),
+              )
+            ],
+          );
+        },
+      );
+    }
+
+    void handleChangeName(String name, BuildContext context) {
+      changeDeviceName(
+        context: context,
+        name: name,
+        onConnect: (password) async {
+
+
+          // if (isConnected) {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       backgroundColor: Colors.green,
+          //       content: Text("Device name changed successfully!"),
+          //     ),
+          //   );
+          //   // Navigator.push(
+          //   //   context,
+          //   //   SlidePageRoute(
+          //   //     page: const EnterWifiDetails(),
+          //   //   ),
+          //   // );
+          // } else {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       backgroundColor: Colors.red,
+          //       content: Text("Failed to change device name. Please try again."),
+          //     ),
+          //   );
+          // }
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
